@@ -11,19 +11,36 @@ def main():
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     my_socket.connect(("127.0.0.1", protocol.PORT))
 
+    print("Connected")
     # Diffie Hellman
     # 1 - choose private key
+    diffie_hellman_private_key = protocol.diffie_hellman_choose_private_key()
     # 2 - calc public key
+    diffie_hellman_public_key = protocol.diffie_hellman_calc_public_key(
+        diffie_hellman_private_key)
     # 3 - interact with server and calc shared secret
+    my_socket.send(str(diffie_hellman_public_key).encode())
+    diffie_hellman_other_public_key = int(my_socket.recv(1024).decode())
+    diffie_hellman_shared_secret = protocol.diffie_hellman_calc_shared_secret(
+        diffie_hellman_other_public_key, diffie_hellman_private_key)
 
     # RSA
     # Pick public key
+    while True:
+        rsa_public_key = protocol.get_RSA_public_key()
+        if protocol.check_RSA_public_key(rsa_public_key):
+            break
     # Calculate matching private key
+    rsa_private_key = protocol.get_RSA_private_key(
+        protocol.RSA_P, protocol.RSA_Q, rsa_public_key)
     # Exchange RSA public keys with server
+    my_socket.send(str(rsa_public_key).encode())
+    rsa_other_public_key = int(my_socket.recv(1024).decode())
 
     while True:
         user_input = input("Enter command\n")
         # Add MAC (signature)
+        
         # 1 - calc hash of user input
         # 2 - calc the signature
 
@@ -54,6 +71,7 @@ def main():
 
     print("Closing\n")
     my_socket.close()
+
 
 if __name__ == "__main__":
     main()
