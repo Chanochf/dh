@@ -30,6 +30,7 @@ def symmetric_encryption(input_data, key):
 
 def diffie_hellman_choose_private_key():
     """Choose a 16 bit size private key """
+    private_key = input("please choose private key between 0 to 65535")
     return
 
 
