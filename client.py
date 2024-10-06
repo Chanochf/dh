@@ -40,16 +40,18 @@ def main():
     while True:
         user_input = input("Enter command\n")
         # Add MAC (signature)
-        
         # 1 - calc hash of user input
+        mssage = protocol.calc_hash(user_input) 
         # 2 - calc the signature
+        signature = protocol.calc_signature(mssage, rsa_private_key)
 
         # Encrypt
         # apply symmetric encryption to the user's input
-
+        user_input = protocol.symmetric_encryption(user_input, diffie_hellman_shared_secret)
         # Send to server
         # Combine encrypted user's message to MAC, send to server
         msg = protocol.create_msg(user_input)
+        msg += str(signature)
         my_socket.send(msg.encode())
 
         if user_input == 'EXIT':
