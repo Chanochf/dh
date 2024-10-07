@@ -10,20 +10,25 @@ DIFFIE_HELLMAN_P = 4001
 DIFFIE_HELLMAN_G = 25
 
 RSA_P = 7879
-RSA_Q = 7877
+RSA_Q = 11
 
 
 def symmetric_encryption(input_data, key):
     """Return the encrypted / decrypted data
     The key is 16 bits. If the length of the input data is odd, use only the bottom 8 bits of the key.
     Use XOR method"""
-    bin_data = bin(input_data)
-    bin_key = bin(key)
+    bin_data = []
+    for i in input_data:
+        bin_data.append(bin(ord(i)))
+    bin_data = ("".join(bin_data)).replace("0b", "")
+    print(bin_data)
+    bin_key = str(bin(key).zfill(16)).replace("0b", "")
+    print(bin_key)
     i = 0
     messege = ""
     while i < len(bin_data):
         for j in bin_key:
-            messege += j ^ bin_data[i]
+            messege += str(int(j) ^ int(bin_data[i]))
             i += 1
             if i == len(bin_data):
                 break
@@ -63,7 +68,7 @@ def calc_hash(message):
 def calc_signature(hash, RSA_private_key):
     """Calculate the signature, using RSA alogorithm
     hash**RSA_private_key mod (P*Q)"""
-    signature = hash**RSA_private_key % (RSA_P * RSA_Q)
+    signature = (hash**RSA_private_key) % (RSA_P * RSA_Q)
     return signature
 
 

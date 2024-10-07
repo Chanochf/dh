@@ -46,7 +46,7 @@ def main():
 
         # Encrypt
         # apply symmetric encryption to the user's input
-        user_input = protocol.symmetric_encryption(user_input, diffie_hellman_shared_secret)
+        msg = protocol.symmetric_encryption(user_input, diffie_hellman_shared_secret)
         # Send to server
         # Combine encrypted user's message to MAC, send to server
         msg += '.' + str(signature)
