@@ -33,7 +33,7 @@ def symmetric_encryption(input_data, key):
 
 def diffie_hellman_choose_private_key():
     """Choose a 16 bit size private key """
-    private_key = int(input("please choose private key between 0 to 65535"))
+    private_key = int(input("please choose diffie_helman private key "))
     return private_key
 
 
@@ -52,7 +52,7 @@ def diffie_hellman_calc_shared_secret(other_side_public, my_private):
 def calc_hash(message):
     result = 0
     for i in str(message):
-        result += int(i)
+        result += ord(i)
     result = result**0.5
     result = "".join((str(result).split('.')))
     result = bin(int(result))
@@ -85,12 +85,12 @@ def get_msg(my_socket):
     return False, "Error"
 
 
-def check_RSA_public_key(totient):
+def check_RSA_public_key(totient, key):
     """Check that the selected public key satisfies the conditions
     key is prime
     key < totoent
     totient mod key != 0"""
-    if key < totient and totient % key != 0:
+    if key < totient and (totient % key) != 0:
         return True
     return False
 
@@ -99,7 +99,7 @@ def get_RSA_private_key(p, q, public_key):
     """Calculate the pair of the RSA public key.
     Use the condition: Private*Public mod Totient == 1
     Totient = (p-1)(q-1)"""
-    Totient = (p-1)(q-1)
+    Totient = (p-1) * (q-1)
     private_key = 0
     while True:
         if (private_key * public_key) % Totient == 1:
@@ -111,9 +111,10 @@ def get_RSA_private_key(p, q, public_key):
 def get_RSA_public_key():
     """Pick prime number to become public key"""
     while True:
-        public_key = int(input("please choose prime public key"))
+        public_key = int(input("please choose RSA prime public key"))
         for i in range(2, int(public_key**0.5) + 1):
             if public_key % i == 0:
+                print(" NOT PRIME ")
                 break
             if i == int(public_key**0.5):
                 return public_key
