@@ -9,6 +9,7 @@ PORT = 8820
 DIFFIE_HELLMAN_P = 4001
 DIFFIE_HELLMAN_G = 25
 
+# TO DO sprate client server p q
 RSA_P = 7879
 RSA_Q = 11
 
@@ -19,11 +20,9 @@ def symmetric_encryption(input_data, key):
     Use XOR method"""
     bin_data = []
     for i in input_data:
-        bin_data.append(bin(ord(i)))
+        bin_data.append(str(bin(ord(i))).zfill(10))
     bin_data = ("".join(bin_data)).replace("0b", "")
-    print(bin_data)
-    bin_key = str(bin(key).zfill(16)).replace("0b", "")
-    print(bin_key)
+    bin_key = str(bin(key)).replace("0b", "").zfill(16)
     i = 0
     messege = ""
     while i < len(bin_data):
@@ -68,7 +67,7 @@ def calc_hash(message):
 def calc_signature(hash, RSA_private_key):
     """Calculate the signature, using RSA alogorithm
     hash**RSA_private_key mod (P*Q)"""
-    signature = (hash**RSA_private_key) % (RSA_P * RSA_Q)
+    signature = (int(hash)**RSA_private_key) % (RSA_P * RSA_Q)
     return signature
 
 
@@ -77,7 +76,7 @@ def create_msg(data):
     For example, if data = data = "hello world",
     then "11hello world" should be returned"""
     length = len(data)
-    message = str(length) + data
+    message = (str(length)).zfill(2) + data
     return message
 
 
@@ -85,8 +84,8 @@ def get_msg(my_socket):
     """Extract message from protocol, without the length field
        If length field does not include a number, returns False, "Error" """
     length = my_socket.recv(LENGTH_FIELD_SIZE).decode()
-    if length.isdigit():
-        return True, my_socket.recv(int(length))
+    if str(length).isdigit():
+        return True, my_socket.recv(int(length)).decode()
     return False, "Error"
 
 
@@ -123,3 +122,6 @@ def get_RSA_public_key():
                 break
             if i == int(public_key**0.5):
                 return public_key
+
+def decode_binary_string(s):
+    return ''.join(chr(int(s[i*8:i*8+8],2)) for i in range(len(s)//8))

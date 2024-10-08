@@ -47,12 +47,14 @@ def main():
         valid_msg, message = protocol.get_msg(client_socket)
         if not valid_msg:
             print("Something went wrong with the length field")
-
         # Check if client's message is authentic
         # 1 - separate the message and the MAC
-        message = ".".split(message)
+        message = message.split('.')
         # 2 - decrypt the message
-        data  = protocol.symmetric_encryption(message[0], diffie_hellman_shared_secret)
+        encript_data = protocol.decode_binary_string(message[0])
+        print("sever encript is:" + encript_data)
+        data  = protocol.symmetric_encryption(encript_data, diffie_hellman_shared_secret)
+        data  = protocol.decode_binary_string(data)
         # 3 - calc hash of message
         data_hash  = protocol.calc_hash(data)
         # 4 - use client's public RSA key to decrypt the MAC and get the hash
@@ -71,11 +73,12 @@ def main():
 
         # Encrypt
         # apply symmetric encryption to the server's message
-        message = protocol.symmetric_encryption(data, diffie_hellman_shared_secret)
+        msg = protocol.symmetric_encryption(data, diffie_hellman_shared_secret)
         # Send to client
         # Combine encrypted user's message to MAC, send to client
         msg += '.' + str(signature)
-        msg = protocol.create_msg(message)
+        msg = protocol.create_msg(msg)
+        print("server echo msg is : " + msg)
         client_socket.send(msg.encode())
 
     print("Closing\n")
@@ -84,5 +87,4 @@ def main():
 
 
 if __name__ == "__main__":
-    print(protocol.calc_hash("555"))
     main()

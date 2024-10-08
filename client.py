@@ -40,17 +40,18 @@ def main():
         user_input = input("Enter command\n")
         # Add MAC (signature)
         # 1 - calc hash of user input
-        mssage = protocol.calc_hash(user_input) 
+        mssage_hash = protocol.calc_hash(user_input) 
         # 2 - calc the signature
-        signature = protocol.calc_signature(mssage, rsa_private_key)
+        signature = protocol.calc_signature(mssage_hash, rsa_private_key)
 
         # Encrypt
         # apply symmetric encryption to the user's input
         msg = protocol.symmetric_encryption(user_input, diffie_hellman_shared_secret)
+        print("user send encript is:" + msg)
         # Send to server
         # Combine encrypted user's message to MAC, send to server
         msg += '.' + str(signature)
-        msg = protocol.create_msg(user_input)
+        msg = protocol.create_msg(msg)
         
         my_socket.send(msg.encode())
 
@@ -64,9 +65,11 @@ def main():
 
         # Check if server's message is authentic
         # 1 - separate the message and the MAC
-        message = ".".split(message)
+        message = message.split('.')
         # 2 - decrypt the message
-        data  = protocol.symmetric_encryption(message[0], diffie_hellman_shared_secret)
+        data = protocol.decode_binary_string(message[0])
+        data  = protocol.symmetric_encryption(data, diffie_hellman_shared_secret)
+        data = protocol.decode_binary_string(data)
         # 3 - calc hash of message
         data_hash  = protocol.calc_hash(data)
         # 4 - use server's public RSA key to decrypt the MAC and get the hash
