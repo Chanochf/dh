@@ -5,7 +5,8 @@
 
 import socket
 import protocol
-
+RSA_P = 7879
+RSA_Q = 11
 
 def main():
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -27,14 +28,17 @@ def main():
     # Pick public key
     while True:
         rsa_public_key = protocol.get_RSA_public_key()
-        if protocol.check_RSA_public_key((protocol.RSA_P -1) * (protocol.RSA_Q- 1), rsa_public_key):
+        if protocol.check_RSA_public_key((RSA_P - 1) * (RSA_Q - 1), rsa_public_key):
             break
     # Calculate matching private key
     rsa_private_key = protocol.get_RSA_private_key(
-        protocol.RSA_P, protocol.RSA_Q, rsa_public_key)
+        RSA_P, RSA_Q, rsa_public_key)
     # Exchange RSA public keys with server
     my_socket.send(str(rsa_public_key).encode())
     rsa_other_public_key = int(my_socket.recv(1024).decode())
+    # Exchange RSA M with server
+    my_socket.send(str(RSA_P*RSA_Q).encode())
+    other_M = int(my_socket.recv(1024).decode())
 
     while True:
         user_input = input("Enter command\n")
@@ -42,7 +46,7 @@ def main():
         # 1 - calc hash of user input
         mssage_hash = protocol.calc_hash(user_input) 
         # 2 - calc the signature
-        signature = protocol.calc_signature(mssage_hash, rsa_private_key)
+        signature = protocol.calc_signature(mssage_hash, rsa_private_key, RSA_P * RSA_Q)
 
         # Encrypt
         # apply symmetric encryption to the user's input
@@ -52,7 +56,7 @@ def main():
         # Combine encrypted user's message to MAC, send to server
         msg += '.' + str(signature)
         msg = protocol.create_msg(msg)
-        
+        msg = msg.replace('0', '1')
         my_socket.send(msg.encode())
 
         if user_input == 'EXIT':
@@ -73,12 +77,12 @@ def main():
         # 3 - calc hash of message
         data_hash  = protocol.calc_hash(data)
         # 4 - use server's public RSA key to decrypt the MAC and get the hash
-        recive_signeture = protocol.calc_signature(message[1], rsa_other_public_key)
+        recive_signeture = protocol.calc_signature(message[1], rsa_other_public_key, other_M)
         # 5 - check if both calculations end up with the same result    
         if  recive_signeture != data_hash:
             print("messege not authentic")
         else:
-            print([data])
+            print(data)
         # Print server's message
 
     print("Closing\n")

@@ -6,6 +6,8 @@
 import socket
 import protocol
 
+RSA_P = 7879
+RSA_Q = 7
 
 def create_server_rsp(cmd):
     """Based on the command, create a proper response"""
@@ -34,14 +36,17 @@ def main():
     # Pick public key
     while True:
         rsa_public_key = protocol.get_RSA_public_key()
-        if protocol.check_RSA_public_key((protocol.RSA_P -1) * (protocol.RSA_Q- 1), rsa_public_key):
+        if protocol.check_RSA_public_key((RSA_P -1) * (RSA_Q- 1), rsa_public_key):
             break
     # Calculate matching private key
     rsa_private_key = protocol.get_RSA_private_key(
-    protocol.RSA_P, protocol.RSA_Q, rsa_public_key)
+    RSA_P, RSA_Q, rsa_public_key)
     # Exchange RSA public keys with client
     client_socket.send(str(rsa_public_key).encode())
     rsa_other_public_key = int(client_socket.recv(1024).decode())
+    # Exchange RSA M with client
+    client_socket.send(str(RSA_P*RSA_Q).encode())
+    other_M = int(client_socket.recv(1024).decode())
     while True:
         # Receive client's message
         valid_msg, message = protocol.get_msg(client_socket)
@@ -58,10 +63,11 @@ def main():
         # 3 - calc hash of message
         data_hash  = protocol.calc_hash(data)
         # 4 - use client's public RSA key to decrypt the MAC and get the hash
-        recive_signeture = protocol.calc_signature(message[1], rsa_other_public_key)
+        recive_signeture = protocol.calc_signature(message[1], rsa_other_public_key, other_M)
         # 5 - check if both calculations end up with the same result
         if  recive_signeture != data_hash:
             print("messege not authentic")
+            continue
         else:
             print([data])
         if message == "EXIT":
@@ -69,7 +75,7 @@ def main():
 
         # Create response. The response would be the echo of the client's message
         data_hashed = protocol.calc_hash(data)
-        signature = protocol.calc_signature(data_hashed, rsa_private_key)
+        signature = protocol.calc_signature(data_hashed, rsa_private_key, RSA_P * RSA_Q)
 
         # Encrypt
         # apply symmetric encryption to the server's message

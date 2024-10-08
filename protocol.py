@@ -10,29 +10,27 @@ DIFFIE_HELLMAN_P = 4001
 DIFFIE_HELLMAN_G = 25
 
 # TO DO sprate client server p q
-RSA_P = 7879
-RSA_Q = 11
+
 
 
 def symmetric_encryption(input_data, key):
-    """Return the encrypted / decrypted data
-    The key is 16 bits. If the length of the input data is odd, use only the bottom 8 bits of the key.
-    Use XOR method"""
-    bin_data = []
-    for i in input_data:
-        bin_data.append(str(bin(ord(i))).zfill(10))
-    bin_data = ("".join(bin_data)).replace("0b", "")
-    bin_key = str(bin(key)).replace("0b", "").zfill(16)
-    i = 0
-    messege = ""
-    while i < len(bin_data):
-        for j in bin_key:
-            messege += str(int(j) ^ int(bin_data[i]))
-            i += 1
-            if i == len(bin_data):
-                break
+    """Encrypt or decrypt the data using XOR method.
+    The key is 16 bits. If the length of the input data is odd, use only the bottom 8 bits of the key."""
+    if len(input_data) % 2 == 1:
+        key = key & 0xFF  
 
-    return messege
+    encrypted_data = []
+    bin_key = format(key, '016b')
+
+    # XOR each character's binary representation with the binary key
+    for char in input_data:
+        char_bin = format(ord(char), '08b')  
+        encrypted_char = ''.join(str(int(char_bin[i]) ^ int(bin_key[i % len(bin_key)])) for i in range(8))
+        encrypted_data.append(encrypted_char)
+
+    
+    return ''.join(encrypted_data)
+
 
 
 def diffie_hellman_choose_private_key():
@@ -64,10 +62,10 @@ def calc_hash(message):
     return result
 
 
-def calc_signature(hash, RSA_private_key):
+def calc_signature(hash, RSA_private_key, M):
     """Calculate the signature, using RSA alogorithm
     hash**RSA_private_key mod (P*Q)"""
-    signature = (int(hash)**RSA_private_key) % (RSA_P * RSA_Q)
+    signature = (int(hash)**RSA_private_key) % M
     return signature
 
 
